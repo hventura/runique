@@ -27,7 +27,7 @@ materialIconsExtended = "1.7.4"
 navigationCompose = "2.8.3"
 securityCryptoKtx = "1.1.0-alpha06"
 timber = "5.0.1"
-ksp = "1.9.22-1.0.17"
+ksp = "2.0.21-1.0.25"
 room = "2.6.1"
 maps = "4.3.3"
 coroutines = "1.8.0"
@@ -42,11 +42,11 @@ annotation = "1.9.0"
 
 ## Project versions
 projectApplicationId = "pt.hventura.runique"
+projectVersionCode = "1"
 projectVersionName = "1.0"
 projectMinSdkVersion = "25"
-projectTargetSdkVersion = "35"
-projectCompileSdkVersion = "35"
-projectVersionCode = "1"
+projectTargetSdkVersion = "34"
+projectCompileSdkVersion = "34"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
