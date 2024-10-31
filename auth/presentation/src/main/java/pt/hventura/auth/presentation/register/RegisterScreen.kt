@@ -59,7 +59,7 @@ fun RegisterScreenRoot(
                     Toast.LENGTH_LONG
                 ).show()
             }
-            RegisterEvent.RegistrationSuccess -> {
+            is RegisterEvent.RegistrationSuccess -> {
                 keyboardController?.hide()
                 Toast.makeText(
                     context,
@@ -67,6 +67,9 @@ fun RegisterScreenRoot(
                     Toast.LENGTH_LONG
                 ).show()
                 onSuccessfulRegistration()
+            }
+            is RegisterEvent.OnSignInEvent -> {
+                onSignInClick()
             }
         }
     }
@@ -100,7 +103,7 @@ private fun RegisterScreen(
                 nonClickableTextResId = R.string.already_have_an_account,
                 clickableTextResId = R.string.login,
                 onClick = {
-                    onAction(RegisterAction.OnLoginClick)
+                    onAction(RegisterAction.OnSignInClick)
                 }
             )
             Spacer(modifier = Modifier.height(48.dp))

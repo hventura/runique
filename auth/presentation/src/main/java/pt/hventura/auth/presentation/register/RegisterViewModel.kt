@@ -63,6 +63,7 @@ class RegisterViewModel(
                     isPasswordVisible = !state.isPasswordVisible
                 )
             }
+            RegisterAction.OnSignInClick -> eventChannel.trySend(RegisterEvent.OnSignInEvent).isSuccess
 
             else -> Unit
         }

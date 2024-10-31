@@ -8,19 +8,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import pt.hventura.auth.presentation.intro.IntroScreenRoot
+import pt.hventura.auth.presentation.login.LoginScreenRoot
 import pt.hventura.auth.presentation.register.RegisterScreenRoot
 
 @Composable
 fun NavigationRoot(
     navController: NavHostController,
-//    isLoggedIn: Boolean,
+    isLoggedIn: Boolean,
 //    onAnalyticsClick: () -> Unit
 ) {
     NavHost(
         navController = navController,
-        startDestination = "auth"
+        startDestination = if (isLoggedIn) "run" else "auth"
     ) {
         authGraph(navController)
+        runGraph(navController)
     }
 }
 
@@ -56,7 +58,35 @@ private fun NavGraphBuilder.authGraph(navController: NavHostController) {
             )
         }
         composable("login") {
-            Text("Login")
+            LoginScreenRoot(
+                onLoginSuccess = {
+                    navController.navigate("run") {
+                        popUpTo("auth") {
+                            inclusive = true
+                        }
+                    }
+                },
+                onSignUpClick = {
+                    navController.navigate("register") {
+                        popUpTo("login") {
+                            inclusive = true
+                            saveState = true
+                        }
+                        restoreState = true
+                    }
+                }
+            )
+        }
+    }
+}
+
+private fun NavGraphBuilder.runGraph(navController: NavHostController) {
+    navigation(
+        startDestination = "run_overview",
+        route = "run"
+    ) {
+        composable(route = "run_overview") {
+            Text("Run Overview")
         }
     }
 }
