@@ -9,10 +9,17 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import pt.hventura.auth.domain.AuthRepository
 import pt.hventura.auth.domain.UserDataValidator
+import pt.hventura.auth.presentation.R
+import pt.hventura.core.domain.util.DataError
+import pt.hventura.core.domain.util.Result
+import pt.hventura.core.presentation.ui.UiText
+import pt.hventura.core.presentation.ui.asUiText
 
 class RegisterViewModel(
     private val userDataValidator: UserDataValidator,
+    private val repository: AuthRepository
 ) : ViewModel() {
 
     var state by mutableStateOf(RegisterState())
@@ -50,9 +57,40 @@ class RegisterViewModel(
 
     fun onAction(action: RegisterAction) {
         when (action) {
-            RegisterAction.OnRegisterClick -> Unit
-            RegisterAction.OnTogglePasswordVisibilityClick -> Unit
+            RegisterAction.OnRegisterClick -> register()
+            RegisterAction.OnTogglePasswordVisibilityClick -> {
+                state = state.copy(
+                    isPasswordVisible = !state.isPasswordVisible
+                )
+            }
+
             else -> Unit
+        }
+    }
+
+    private fun register() {
+        viewModelScope.launch {
+            state = state.copy(isRegistering = true)
+            val result = repository.register(
+                email = state.email.text.toString().trim(),
+                password = state.password.text.toString()
+            )
+            state = state.copy(isRegistering = false)
+
+            when(result) {
+                is Result.Error -> {
+                    if(result.error == DataError.Network.CONFLICT) {
+                        eventChannel.send(RegisterEvent.Error(
+                            UiText.StringResource(R.string.error_email_exists)
+                        ))
+                    } else {
+                        eventChannel.send(RegisterEvent.Error(result.error.asUiText()))
+                    }
+                }
+                is Result.Success -> {
+                    eventChannel.send(RegisterEvent.RegistrationSuccess)
+                }
+            }
         }
     }
 }

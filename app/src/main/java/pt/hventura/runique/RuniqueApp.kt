@@ -6,6 +6,7 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import pt.hventura.auth.data.di.authDataModule
 import pt.hventura.auth.presentation.di.authViewModelModule
+import pt.hventura.core.data.di.coreDataModule
 import pt.hventura.runique.di.appModule
 import timber.log.Timber
 
@@ -22,6 +23,7 @@ class RuniqueApp: Application() {
             androidContext(this@RuniqueApp)
             modules(
                 appModule,
+                coreDataModule,
                 authDataModule,
                 authViewModelModule
             )
