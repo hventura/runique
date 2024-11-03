@@ -34,6 +34,7 @@ import pt.hventura.core.presentation.designsystem.components.RuniqueScaffold
 import pt.hventura.core.presentation.designsystem.components.RuniqueToolbar
 import pt.hventura.run.presentation.R
 import pt.hventura.run.presentation.active_run.components.RunDataCard
+import pt.hventura.run.presentation.active_run.maps.TrackerMap
 import pt.hventura.run.presentation.util.hasLocationPermission
 import pt.hventura.run.presentation.util.hasNotificationPermission
 import pt.hventura.run.presentation.util.shouldShowLocationPermissionRationale
@@ -140,6 +141,13 @@ private fun ActiveRunScreen(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
         ) {
+            TrackerMap(
+                currentLocation = state.currentLocation,
+                isRunFinished = state.isRunFinished,
+                modifier = Modifier.fillMaxSize(),
+                locations = state.runData.locations,
+                onSnapshot = {}
+            )
             RunDataCard(
                 elapsedTime = state.elapsedTime,
                 runData = state.runData,
