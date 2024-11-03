@@ -10,6 +10,7 @@ import androidx.navigation.navigation
 import pt.hventura.auth.presentation.intro.IntroScreenRoot
 import pt.hventura.auth.presentation.login.LoginScreenRoot
 import pt.hventura.auth.presentation.register.RegisterScreenRoot
+import pt.hventura.run.presentation.run_overview.RunOverviewScreenRoot
 
 @Composable
 fun NavigationRoot(
@@ -86,7 +87,7 @@ private fun NavGraphBuilder.runGraph(navController: NavHostController) {
         route = "run"
     ) {
         composable(route = "run_overview") {
-            Text("Run Overview")
+            RunOverviewScreenRoot()
         }
     }
 }
