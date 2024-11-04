@@ -15,13 +15,17 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import pt.hventura.run.domain.RunningTracker
+import pt.hventura.run.presentation.active_run.service.ActiveRunService
 import timber.log.Timber
 
 class ActiveRunViewModel(
     private val runningTracker: RunningTracker,
 ) : ViewModel() {
 
-    var state by mutableStateOf(ActiveRunState())
+    var state by mutableStateOf(ActiveRunState(
+        shouldTrack = ActiveRunService.isServiceActive && runningTracker.isTracking.value,
+        hasStartedRunning = ActiveRunService.isServiceActive
+    ))
         private set
 
     private val eventChannel = Channel<ActiveRunEvent>()
@@ -120,4 +124,12 @@ class ActiveRunViewModel(
             }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        if(!ActiveRunService.isServiceActive) {
+            runningTracker.stopObservingLocation()
+        }
+    }
+
 }
