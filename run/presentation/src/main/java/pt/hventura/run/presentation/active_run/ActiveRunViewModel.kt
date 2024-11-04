@@ -17,22 +17,27 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import pt.hventura.core.domain.location.Location
 import pt.hventura.core.domain.run.Run
+import pt.hventura.core.domain.run.RunRepository
+import pt.hventura.core.domain.util.Result
+import pt.hventura.core.presentation.ui.asUiText
 import pt.hventura.run.domain.LocationDataCalculator
 import pt.hventura.run.domain.RunningTracker
 import pt.hventura.run.presentation.active_run.service.ActiveRunService
-import timber.log.Timber
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.math.roundToInt
 
 class ActiveRunViewModel(
     private val runningTracker: RunningTracker,
+    private val runRepository: RunRepository
 ) : ViewModel() {
 
-    var state by mutableStateOf(ActiveRunState(
-        shouldTrack = ActiveRunService.isServiceActive && runningTracker.isTracking.value,
-        hasStartedRunning = ActiveRunService.isServiceActive
-    ))
+    var state by mutableStateOf(
+        ActiveRunState(
+            shouldTrack = ActiveRunService.isServiceActive && runningTracker.isTracking.value,
+            hasStartedRunning = ActiveRunService.isServiceActive
+        )
+    )
         private set
 
     private val eventChannel = Channel<ActiveRunEvent>()
@@ -52,7 +57,7 @@ class ActiveRunViewModel(
     init {
         hasLocationPermission
             .onEach { hasPermission ->
-                if(hasPermission) {
+                if (hasPermission) {
                     runningTracker.startObservingLocation()
                 } else {
                     runningTracker.stopObservingLocation()
@@ -98,27 +103,33 @@ class ActiveRunViewModel(
                     showLocationRationale = false
                 )
             }
+
             ActiveRunAction.OnBackClick -> {
                 state = state.copy(shouldTrack = false)
             }
+
             ActiveRunAction.OnFinishRunClick -> {
                 state = state.copy(
                     isRunFinished = true,
                     isSavingRun = true
                 )
             }
+
             ActiveRunAction.OnResumeRunClick -> {
                 state = state.copy(shouldTrack = true)
             }
+
             is ActiveRunAction.OnRunProcessed -> {
                 finishRun(action.mapPictureBytes)
             }
+
             ActiveRunAction.OnToggleRunClick -> {
                 state = state.copy(
                     hasStartedRunning = true,
                     shouldTrack = !state.shouldTrack
                 )
             }
+
             is ActiveRunAction.SubmitLocationPermissionInfo -> {
                 hasLocationPermission.value = action.acceptedLocationPermission
                 state = state.copy(
@@ -136,7 +147,7 @@ class ActiveRunViewModel(
 
     private fun finishRun(mapPictureBytes: ByteArray) {
         val locations = state.runData.locations
-        if(locations.isEmpty() || locations.first().size <= 1) {
+        if (locations.isEmpty() || locations.first().size <= 1) {
             state = state.copy(isSavingRun = false)
             return
         }
@@ -152,12 +163,12 @@ class ActiveRunViewModel(
                 maxSpeedKmh = LocationDataCalculator.getMaxSpeedKmh(locations),
                 totalElevationMeters = LocationDataCalculator.getTotalElevationMeters(locations),
                 mapPictureUrl = null,
-                avgHeartRate = if(state.runData.heartRates.isEmpty()) {
+                avgHeartRate = if (state.runData.heartRates.isEmpty()) {
                     null
                 } else {
                     state.runData.heartRates.average().roundToInt()
                 },
-                maxHeartRate = if(state.runData.heartRates.isEmpty()) {
+                maxHeartRate = if (state.runData.heartRates.isEmpty()) {
                     null
                 } else {
                     state.runData.heartRates.max()
@@ -166,7 +177,15 @@ class ActiveRunViewModel(
 
             runningTracker.finishRun()
 
-            // Save run in repository
+            when (val result = runRepository.upsertRun(run, mapPictureBytes)) {
+                is Result.Error -> {
+                    eventChannel.send(ActiveRunEvent.Error(result.error.asUiText()))
+                }
+
+                is Result.Success -> {
+                    eventChannel.send(ActiveRunEvent.RunSaved)
+                }
+            }
 
             state = state.copy(isSavingRun = false)
         }
@@ -174,7 +193,7 @@ class ActiveRunViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        if(!ActiveRunService.isServiceActive) {
+        if (!ActiveRunService.isServiceActive) {
             runningTracker.stopObservingLocation()
         }
     }
