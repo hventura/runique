@@ -27,6 +27,7 @@ import org.koin.androidx.compose.koinViewModel
 import pt.hventura.core.presentation.designsystem.RuniqueTheme
 import pt.hventura.core.presentation.designsystem.StartIcon
 import pt.hventura.core.presentation.designsystem.StopIcon
+import pt.hventura.core.presentation.designsystem.components.RuniqueActionButton
 import pt.hventura.core.presentation.designsystem.components.RuniqueDialog
 import pt.hventura.core.presentation.designsystem.components.RuniqueFloatingActionButton
 import pt.hventura.core.presentation.designsystem.components.RuniqueOutlinedActionButton
@@ -158,6 +159,37 @@ private fun ActiveRunScreen(
             )
         }
     }
+
+    if (!state.shouldTrack && state.hasStartedRunning) {
+        RuniqueDialog(
+            title = stringResource(id = R.string.running_is_paused),
+            onDismiss = {
+                onAction(ActiveRunAction.OnResumeRunClick)
+            },
+            description = stringResource(id = R.string.resume_or_finish_run),
+            primaryButton = {
+                RuniqueActionButton(
+                    text = stringResource(id = R.string.resume),
+                    isLoading = false,
+                    onClick = {
+                        onAction(ActiveRunAction.OnResumeRunClick)
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            },
+            secondaryButton = {
+                RuniqueOutlinedActionButton(
+                    text = stringResource(id = R.string.finish),
+                    isLoading = state.isSavingRun,
+                    onClick = {
+                        onAction(ActiveRunAction.OnFinishRunClick)
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        )
+    }
+
     if (state.showLocationRationale || state.showNotificationRationale) {
         RuniqueDialog(
             title = stringResource(id = R.string.permission_required),
