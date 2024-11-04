@@ -14,9 +14,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import pt.hventura.core.domain.location.Location
+import pt.hventura.core.domain.run.Run
+import pt.hventura.run.domain.LocationDataCalculator
 import pt.hventura.run.domain.RunningTracker
 import pt.hventura.run.presentation.active_run.service.ActiveRunService
 import timber.log.Timber
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import kotlin.math.roundToInt
 
 class ActiveRunViewModel(
     private val runningTracker: RunningTracker,
@@ -103,7 +110,9 @@ class ActiveRunViewModel(
             ActiveRunAction.OnResumeRunClick -> {
                 state = state.copy(shouldTrack = true)
             }
-            is ActiveRunAction.OnRunProcessed -> TODO()
+            is ActiveRunAction.OnRunProcessed -> {
+                finishRun(action.mapPictureBytes)
+            }
             ActiveRunAction.OnToggleRunClick -> {
                 state = state.copy(
                     hasStartedRunning = true,
@@ -122,6 +131,44 @@ class ActiveRunViewModel(
                     showNotificationRationale = action.showNotificationPermissionRationale
                 )
             }
+        }
+    }
+
+    private fun finishRun(mapPictureBytes: ByteArray) {
+        val locations = state.runData.locations
+        if(locations.isEmpty() || locations.first().size <= 1) {
+            state = state.copy(isSavingRun = false)
+            return
+        }
+
+        viewModelScope.launch {
+            val run = Run(
+                id = null,
+                duration = state.elapsedTime,
+                dateTimeUtc = ZonedDateTime.now()
+                    .withZoneSameInstant(ZoneId.of("UTC")),
+                distanceMeters = state.runData.distanceMeters,
+                location = state.currentLocation ?: Location(0.0, 0.0),
+                maxSpeedKmh = LocationDataCalculator.getMaxSpeedKmh(locations),
+                totalElevationMeters = LocationDataCalculator.getTotalElevationMeters(locations),
+                mapPictureUrl = null,
+                avgHeartRate = if(state.runData.heartRates.isEmpty()) {
+                    null
+                } else {
+                    state.runData.heartRates.average().roundToInt()
+                },
+                maxHeartRate = if(state.runData.heartRates.isEmpty()) {
+                    null
+                } else {
+                    state.runData.heartRates.max()
+                }
+            )
+
+            runningTracker.finishRun()
+
+            // Save run in repository
+
+            state = state.copy(isSavingRun = false)
         }
     }
 

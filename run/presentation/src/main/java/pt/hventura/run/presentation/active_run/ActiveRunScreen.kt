@@ -4,6 +4,7 @@ package pt.hventura.run.presentation.active_run
 
 import android.Manifest
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,6 +44,7 @@ import pt.hventura.run.presentation.util.hasLocationPermission
 import pt.hventura.run.presentation.util.hasNotificationPermission
 import pt.hventura.run.presentation.util.shouldShowLocationPermissionRationale
 import pt.hventura.run.presentation.util.shouldShowNotificationPermissionRationale
+import java.io.ByteArrayOutputStream
 
 @Composable
 fun ActiveRunScreenRoot(
@@ -165,7 +167,17 @@ private fun ActiveRunScreen(
                 isRunFinished = state.isRunFinished,
                 modifier = Modifier.fillMaxSize(),
                 locations = state.runData.locations,
-                onSnapshot = {}
+                onSnapshot = { bmp ->
+                    val stream = ByteArrayOutputStream()
+                    stream.use {
+                        bmp.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            80,
+                            it
+                        )
+                    }
+                    onAction(ActiveRunAction.OnRunProcessed(stream.toByteArray()))
+                }
             )
             RunDataCard(
                 elapsedTime = state.elapsedTime,
