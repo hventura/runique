@@ -9,6 +9,7 @@ import org.koin.core.context.startKoin
 import pt.hventura.auth.data.di.authDataModule
 import pt.hventura.auth.presentation.di.authViewModelModule
 import pt.hventura.core.data.di.coreDataModule
+import pt.hventura.core.database.di.databaseModule
 import pt.hventura.run.location.di.locationModule
 import pt.hventura.run.presentation.di.runPresentationModule
 import pt.hventura.runique.di.appModule
@@ -33,7 +34,8 @@ class RuniqueApp: Application() {
                 authDataModule,
                 authViewModelModule,
                 locationModule,
-                runPresentationModule
+                runPresentationModule,
+                databaseModule
             )
         }
     }
