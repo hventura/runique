@@ -26,7 +26,7 @@ import pt.hventura.core.presentation.designsystem.components.RuniqueToolbar
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AnalyticsDashboardScreenRot(
+fun AnalyticsDashboardScreenRoot(
     onBackClick: () -> Unit,
     viewModel: AnalyticsDashboardViewModel = koinViewModel()
 ) {
